@@ -12,8 +12,9 @@
 struct Point {
     float x;
     float y;
-    unsigned int prev_x;
-    unsigned int prev_y;
-    unsigned int mass;
+    float prev_x;
+    float prev_y;
+    float mass;
+    bool frozen;
     bool selected;
 };

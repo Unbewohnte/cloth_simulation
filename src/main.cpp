@@ -68,7 +68,7 @@ int main(const int argc, char** argv) {
         .cloth_startpos = Vec2{50, 50},
         .cloth_dimensions = Vec2{400, 400},
         .cloth_spacing = 20,
-        .gravity = Vec2f{0.3f, 0.8f},
+        .gravity = Vec2f{0.0f, 1.5f},
         .background_color = RGB{80, 100, 255},
         .point_color = RGB{10, 10, 10},
         .point_selected_color = RGB{200, 40, 12},

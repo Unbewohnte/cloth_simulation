@@ -15,3 +15,4 @@ struct Cloth {
 Cloth* new_cloth(Vec2 startpos, Vec2 dimensions, unsigned int spacing);
 void destroy_cloth(Cloth* cloth);
 void compute_cloth_forces(Cloth* cloth, Vec2f gravity_vec);
+void satisfy_cloth_constraints(Cloth* cloth, Vec2 top_left, Vec2 bottom_right);

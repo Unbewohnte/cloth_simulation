@@ -68,14 +68,13 @@ void app_update(App* app) {
         return;
     }
 
-    compute_cloth_forces(app->cloth, app->conf.gravity);
-
-    app->conf.gravity = Vec2f{app->conf.gravity.x-0.0005f, app->conf.gravity.y-0.001f};
-
     int updated_window_w;
     int updated_window_h;
     SDL_GetWindowSize(app->window->sdl_win, &updated_window_w, &updated_window_h);
     app->window->dimensions = Vec2{(unsigned int) updated_window_w, (unsigned int) updated_window_h};
+
+    compute_cloth_forces(app->cloth, app->conf.gravity);
+    satisfy_cloth_constraints(app->cloth, Vec2{0, 0}, Vec2{app->window->dimensions.x-5, app->window->dimensions.y-5});
 }
 
 void destroy_app(App* app) {
