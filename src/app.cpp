@@ -1,6 +1,7 @@
 #include "app.hpp"
 #include "cloth.hpp"
 #include "window.hpp"
+#include "vec.hpp"
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_render.h>
@@ -16,10 +17,20 @@ App* app_init(App_config conf) {
     if (conf.window_dimensions.y <= 0) {
         conf.window_dimensions.y = 500;
     }
+    if (conf.efficiency_factor < 0 || conf.efficiency_factor > 1) {
+        conf.efficiency_factor = 0.6;
+    }
     app->conf = conf;
     
     app->window = new_window(conf.win_name, conf.window_dimensions);
-    app->cloth = new_cloth(conf.cloth_startpos, conf.cloth_dimensions, conf.cloth_spacing);
+    app->cloth = new_cloth(
+        conf.cloth_startpos,
+        conf.cloth_dimensions,
+        conf.cloth_spacing,
+        conf.efficiency_factor,
+        conf.friction_factor,
+        Vec2{0, 0}, Vec2{app->window->dimensions.x-5, app->window->dimensions.y-5}
+    );
 
     if (app->window == NULL || app->cloth == NULL) {
         return NULL;
@@ -73,8 +84,10 @@ void app_update(App* app) {
     SDL_GetWindowSize(app->window->sdl_win, &updated_window_w, &updated_window_h);
     app->window->dimensions = Vec2{(unsigned int) updated_window_w, (unsigned int) updated_window_h};
 
-    compute_cloth_forces(app->cloth, app->conf.gravity);
-    satisfy_cloth_constraints(app->cloth, Vec2{0, 0}, Vec2{app->window->dimensions.x-5, app->window->dimensions.y-5});
+    app->cloth->constraint_bottom_right.x = app->window->dimensions.x;
+    app->cloth->constraint_bottom_right.y = app->window->dimensions.y-5;
+    cloth_step(app->cloth, app->conf.gravity, 1);
+    satisfy_cloth_constraints(app->cloth);
 }
 
 void destroy_app(App* app) {

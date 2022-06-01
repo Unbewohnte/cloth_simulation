@@ -11,6 +11,8 @@ struct App_config {
     Vec2 cloth_dimensions;
     unsigned int cloth_spacing;
     Vec2f gravity;
+    float efficiency_factor;
+    float friction_factor;
     RGB background_color;
     RGB point_color;
     RGB point_selected_color;

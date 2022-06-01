@@ -64,15 +64,16 @@ int main(const int argc, char** argv) {
 
     App_config config = {
         .win_name = window_name.c_str(),
-        .window_dimensions = Vec2{500, 500},
+        .window_dimensions = Vec2{800, 700},
         .cloth_startpos = Vec2{50, 50},
         .cloth_dimensions = Vec2{400, 400},
         .cloth_spacing = 20,
-        .gravity = Vec2f{0.0f, 1.5f},
-        .background_color = RGB{80, 100, 255},
-        .point_color = RGB{10, 10, 10},
+        .gravity = Vec2f{0.65f, 0.45f},
+        .efficiency_factor = 0.25f,
+        .background_color = RGB{205, 222, 242},
+        .point_color = RGB{2, 10, 1},
         .point_selected_color = RGB{200, 40, 12},
-        .connection_color = RGB{100, 100, 100},
+        .connection_color = RGB{48, 142, 31},
     };
     App* app = app_init(config);
 
