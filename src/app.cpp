@@ -1,9 +1,11 @@
 #include "app.hpp"
 #include "cloth.hpp"
+#include "mouse.hpp"
 #include "window.hpp"
 #include "vec.hpp"
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_keycode.h>
+#include <SDL2/SDL_mouse.h>
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_video.h>
@@ -22,6 +24,7 @@ App* app_init(App_config conf) {
     }
     app->conf = conf;
     
+    app->mouse = new_mouse(Vec2{0, 0}, 30);
     app->window = new_window(conf.win_name, conf.window_dimensions);
     app->cloth = new_cloth(
         conf.cloth_startpos,
@@ -61,12 +64,44 @@ void app_handle_input(App* app) {
                 case SDLK_SPACE:
                     toggle_pause(app);
                     break; 
-            }        
+                
+                case SDLK_LEFT:
+                    if (app->conf.timestep >= 0.25) {
+                        app->conf.timestep -= 0.25;
+                    }
+                    break;
+                
+                case SDLK_RIGHT:
+                    app->conf.timestep += 0.25;
+                    break;
+            }
+
+        case SDL_MOUSEMOTION:
+            app->mouse->last_pos = app->mouse->pos;
+            app->mouse->pos = Vec2{
+                static_cast<unsigned int>(event.motion.x),
+                static_cast<unsigned int>(event.motion.y)
+            };
+            break;        
+        
+        case SDL_MOUSEBUTTONDOWN:
+            if (event.button.button == SDL_BUTTON_LEFT) {
+                app->mouse->left_button_clicked = true;
+            }
+            break;
+
+        case SDL_MOUSEBUTTONUP:
+            if (event.button.button == SDL_BUTTON_LEFT) {
+                app->mouse->left_button_clicked = false;
+            }
+            break;
         }
+
     }
 }
 
-void app_render(App* app) {    
+void app_render(App* app) {
+    SDL_RenderClear(app->window->renderer);    
     fill_screen(app->window, app->conf.background_color);
     draw_cloth(
         app->window, app->cloth,
@@ -83,16 +118,19 @@ void app_update(App* app) {
     int updated_window_h;
     SDL_GetWindowSize(app->window->sdl_win, &updated_window_w, &updated_window_h);
     app->window->dimensions = Vec2{(unsigned int) updated_window_w, (unsigned int) updated_window_h};
+    if (app->cloth->constraint_bottom_right.x != (unsigned int) updated_window_w || app->cloth->constraint_bottom_right.y != (unsigned int) updated_window_h) {
+        app->cloth->constraint_bottom_right.x = app->window->dimensions.x;
+        app->cloth->constraint_bottom_right.y = app->window->dimensions.y-5;
+    }
 
-    app->cloth->constraint_bottom_right.x = app->window->dimensions.x;
-    app->cloth->constraint_bottom_right.y = app->window->dimensions.y-5;
-    cloth_step(app->cloth, app->conf.gravity, 1);
-    satisfy_cloth_constraints(app->cloth);
+    cloth_step(app->cloth, app->mouse, app->conf.gravity, app->conf.timestep);
 }
 
 void destroy_app(App* app) {
+    destroy_mouse(app->mouse);
     destroy_cloth(app->cloth);
     destroy_window(app->window);
+    app->mouse = NULL;
     app->cloth = NULL;
     app->window = NULL;
     app->is_running = false;

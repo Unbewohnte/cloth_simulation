@@ -1,5 +1,6 @@
 #pragma once
 
+#include "mouse.hpp"
 #include "window.hpp"
 #include "cloth.hpp"
 #include <SDL2/SDL_render.h>
@@ -13,6 +14,7 @@ struct App_config {
     Vec2f gravity;
     float efficiency_factor;
     float friction_factor;
+    float timestep;
     RGB background_color;
     RGB point_color;
     RGB point_selected_color;
@@ -23,6 +25,7 @@ struct App {
     bool is_running;
     bool paused;
     App_config conf;
+    Mouse* mouse;
     Window* window;
     Cloth* cloth;
 };

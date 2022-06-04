@@ -1,5 +1,7 @@
 #include "cloth.hpp"
 #include "connection.hpp"
+#include "mouse.hpp"
+#include <cmath>
 #include <cstddef>
 #include <cstdio>
 #include <vector>
@@ -26,18 +28,12 @@ Cloth* new_cloth(
     bool frozen_point = false;
     for (unsigned int y = 0; y < dimensions.y; y += spacing) {        
         for (unsigned int x = 0; x < dimensions.x; x += spacing) {
-            // if (y == 0 && x == new_cloth->dimensions.x/2) {
-            //     frozen_point = true;
-            // } else {
-            //     frozen_point = false;
-            // }
-            
             Point* new_point = new Point{
-                .x = static_cast<float>(startpos.x + x),
-                .y = static_cast<float>(startpos.y + y),
+                .pos = Vec2f{static_cast<float>(startpos.x + x), static_cast<float>(startpos.y + y)},
                 .mass = 10.0f,
                 .frozen = frozen_point,
                 .selected = false,
+                .radius = 2.5,
             };
             new_cloth->points.push_back(new_point);
 
@@ -78,58 +74,58 @@ void destroy_cloth(Cloth* cloth) {
     delete cloth;
 }
 
-// calculate forces and actually MOVE points 
-void cloth_step(Cloth* cloth, Vec2f gravity_vec, float timedelta) {
+// calculate forces, move points and satisfy constraints 
+void cloth_step(Cloth* cloth, Mouse* mouse, Vec2f gravity_vec, float timedelta) {
     for (Point* p : cloth->points) {
         if (p->frozen) {
             continue;
         }
-        
-        // calculate velocity
-        if (p->y == cloth->constraint_bottom_right.y) {
-            // if this point's x velocity is too small -> just stop it
-            // else -> handle friction
-            if (p->velocity.x <= 0.5) {
-                p->velocity.x = 0;
-            } else {
-                p->velocity.x = p->velocity.x*cloth->friction_factor * timedelta;
-            }
+
+        // handle mouse
+        // ((x0 - x1)^2 + (y0 - y1)^2)^0.5
+        float distance_to_point = std::sqrt(pow(p->pos.x - mouse->pos.x, 2.0f)+pow(p->pos.y - mouse->pos.y, 2.0f));
+        if (distance_to_point <= mouse->cursor_radius_size) {
+            p->selected = true;
         } else {
-            p->velocity.x = p->velocity.x+(gravity_vec.x/p->mass) * timedelta;
-            p->velocity.y = p->velocity.y+(gravity_vec.y/p->mass) * timedelta;
+            p->selected = false;
         }
 
-        // move point
-        p->x += p->velocity.x;
-        p->y += p->velocity.y;
-    }
-}
+        if (p->selected && mouse->left_button_clicked) {
+            p->pos = Vec2f{(float) mouse->pos.x, (float) mouse->pos.y};
+        }
 
-// handle constraints, bounces
-void satisfy_cloth_constraints(Cloth* cloth) {
-    for (Point* p : cloth->points) {
+        // calculate velocity
+        p->velocity.x = (p->velocity.x + (gravity_vec.x/p->mass)) * timedelta;
+        p->velocity.y = (p->velocity.y + (gravity_vec.y/p->mass)) * timedelta;
+
+        // move point
+        p->pos.x += p->velocity.x;
+        p->pos.y += p->velocity.y;
+
+        // now handle constraints
         // bottom
-        if (p->y > cloth->constraint_bottom_right.y) {
-            p->y = cloth->constraint_bottom_right.y;
-            p->velocity.y = -p->velocity.y*cloth->efficiency_factor;
+        if (p->pos.y >= cloth->constraint_bottom_right.y) {
+            p->pos.y = cloth->constraint_bottom_right.y;            
+            p->velocity.x = (p->velocity.x * cloth->friction_factor);
+            p->velocity.y = -p->velocity.y * cloth->efficiency_factor;
         }
 
         // right
-        if (p->x > cloth->constraint_bottom_right.x) {
-            p->x = cloth->constraint_bottom_right.x;
-            p->velocity.x = -p->velocity.x*cloth->efficiency_factor;
+        if (p->pos.x >= cloth->constraint_bottom_right.x) {
+            p->pos.x = cloth->constraint_bottom_right.x;
+            p->velocity.x = -p->velocity.x * cloth->efficiency_factor;
         }
 
         // left
-        if (p->x < cloth->constraint_top_left.x) {
-            p->x = cloth->constraint_top_left.x;
-            p->velocity.x = -p->velocity.x*cloth->efficiency_factor;
+        if (p->pos.x <= cloth->constraint_top_left.x) {
+            p->pos.x = cloth->constraint_top_left.x;
+            p->velocity.x = -p->velocity.x * cloth->efficiency_factor;
         }
 
         // up
-        if (p->y < cloth->constraint_top_left.y) {
-            p->y = cloth->constraint_top_left.y;
-            p->velocity.y = -p->velocity.y*cloth->efficiency_factor;
+        if (p->pos.y <= cloth->constraint_top_left.y) {
+            p->pos.y = cloth->constraint_top_left.y;
+            p->velocity.y = -p->velocity.y * cloth->efficiency_factor;
         }
     }
 }

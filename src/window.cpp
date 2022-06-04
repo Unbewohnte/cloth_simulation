@@ -60,9 +60,15 @@ void fill_screen(Window* window, RGB color) {
 }
 
 void draw_point(Window* window, Point point, RGB color) {
-    if (window->renderer != NULL) { 
+    if (window->renderer != NULL) {
         SDL_SetRenderDrawColor(window->renderer, color.r, color.g, color.b, 255);
-        SDL_RenderDrawPoint(window->renderer, (int) point.x, (int) point.y);
+        for (float angle = 0.0f; angle <= 6.283f; angle+=1.0f/point.radius ) {
+            SDL_RenderDrawPoint(
+            window->renderer,
+            point.pos.x+point.radius*cos(angle),
+            point.pos.y+point.radius*sin(angle) 
+            );
+        }
     }
 }
 
@@ -71,10 +77,10 @@ void draw_connection(Window* window, Connection connection, RGB color) {
         SDL_SetRenderDrawColor(window->renderer, color.r, color.g, color.b, 255);
         SDL_RenderDrawLine(
             window->renderer,
-            (int) connection.p0.x,
-            (int) connection.p0.y,
-            (int) connection.p1.x,
-            (int) connection.p1.y
+            (int) connection.p0.pos.x,
+            (int) connection.p0.pos.y,
+            (int) connection.p1.pos.x,
+            (int) connection.p1.pos.y
         );
     }
 }
@@ -85,6 +91,10 @@ void draw_cloth(Window* window, Cloth* cloth, RGB point_color, RGB connection_co
     }
 
     for (const Point* point : cloth->points) {
-        draw_point(window, *point, point_color);
+        if (point->selected) {
+            draw_point(window, *point, selected_p_color);
+        } else {
+            draw_point(window, *point, point_color);
+        }
     }
 }

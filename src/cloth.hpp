@@ -1,5 +1,6 @@
 #pragma once
 
+#include "mouse.hpp"
 #include "point.hpp"
 #include "connection.hpp"
 #include "vec.hpp"
@@ -25,5 +26,4 @@ Cloth* new_cloth(
     Vec2 constraint_top_left, Vec2 constraint_bottom_right
 );
 void destroy_cloth(Cloth* cloth);
-void cloth_step(Cloth* cloth, Vec2f gravity_vec, float timedelta);
-void satisfy_cloth_constraints(Cloth* cloth);
+void cloth_step(Cloth* cloth, Mouse* mouse, Vec2f gravity_vec, float timedelta);

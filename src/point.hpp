@@ -4,10 +4,10 @@
 #include "vec.hpp"
 
 struct Point {
-    float x;
-    float y;
+    Vec2f pos;
     float mass;
     bool frozen;
     bool selected;
+    float radius;
     Vec2f velocity;
 };
