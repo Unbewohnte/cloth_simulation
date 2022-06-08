@@ -64,11 +64,11 @@ int main(const int argc, char** argv) {
 
     App_config config = {
         .win_name = window_name.c_str(),
-        .window_dimensions = Vec2{800, 700},
+        .window_dimensions = Vec2{750, 700},
         .cloth_startpos = Vec2{50, 50},
         .cloth_dimensions = Vec2{400, 400},
         .cloth_spacing = 20,
-        .gravity = Vec2f{0.5f, 0.75f},
+        .gravity = Vec2f{0.65f, 0.85f},
         .efficiency_factor = 0.25f,
         .timestep = 1.0f,
         .background_color = RGB{205, 222, 242},

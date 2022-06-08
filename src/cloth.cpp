@@ -37,7 +37,7 @@ Cloth* new_cloth(
             };
             new_cloth->points.push_back(new_point);
 
-            if (x > 0) {
+            if (x != 0) {
                 Point* p0_left = new_cloth->points[new_cloth->points.size() - 2];
                 Connection* new_conn = new Connection{*p0_left, *new_point};
                 new_cloth->connections.push_back(new_conn);
@@ -77,11 +77,7 @@ void destroy_cloth(Cloth* cloth) {
 // calculate forces, move points and satisfy constraints 
 void cloth_step(Cloth* cloth, Mouse* mouse, Vec2f gravity_vec, float timedelta) {
     for (Point* p : cloth->points) {
-        if (p->frozen) {
-            continue;
-        }
-
-        // handle mouse
+        // check if this point is in pointer's area 
         // ((x0 - x1)^2 + (y0 - y1)^2)^0.5
         float distance_to_point = std::sqrt(pow(p->pos.x - mouse->pos.x, 2.0f)+pow(p->pos.y - mouse->pos.y, 2.0f));
         if (distance_to_point <= mouse->cursor_radius_size) {
@@ -90,23 +86,34 @@ void cloth_step(Cloth* cloth, Mouse* mouse, Vec2f gravity_vec, float timedelta) 
             p->selected = false;
         }
 
-        if (p->selected && mouse->left_button_clicked) {
-            p->pos = Vec2f{(float) mouse->pos.x, (float) mouse->pos.y};
+        // skip any calculations if this point is frozen
+        if (p->frozen) {
+            continue;
         }
 
         // calculate velocity
-        p->velocity.x = (p->velocity.x + (gravity_vec.x/p->mass)) * timedelta;
-        p->velocity.y = (p->velocity.y + (gravity_vec.y/p->mass)) * timedelta;
+        p->acceleration.x = gravity_vec.x / p->mass;
+        p->acceleration.y = gravity_vec.y / p->mass;
 
-        // move point
-        p->pos.x += p->velocity.x;
-        p->pos.y += p->velocity.y;
+        if (p->selected && mouse->left_button_clicked) {
+            Vec2f difference = {
+                (float) (mouse->pos.x - p->pos.x) * cloth->efficiency_factor,
+                (float) (mouse->pos.y - p->pos.y) * cloth->efficiency_factor,
+            };
+
+            p->acceleration.x = difference.x / p->mass;
+            p->acceleration.y = difference.y / p->mass;
+        }
+
+        // apply calculated velocity
+        p->velocity.x = p->velocity.x + p->acceleration.x * timedelta;
+        p->velocity.y = p->velocity.y + p->acceleration.y * timedelta;
 
         // now handle constraints
         // bottom
         if (p->pos.y >= cloth->constraint_bottom_right.y) {
-            p->pos.y = cloth->constraint_bottom_right.y;            
-            p->velocity.x = (p->velocity.x * cloth->friction_factor);
+            p->pos.y = cloth->constraint_bottom_right.y; 
+            p->velocity.x = p->velocity.x * cloth->friction_factor; // friction on the floor
             p->velocity.y = -p->velocity.y * cloth->efficiency_factor;
         }
 
@@ -127,5 +134,9 @@ void cloth_step(Cloth* cloth, Mouse* mouse, Vec2f gravity_vec, float timedelta) 
             p->pos.y = cloth->constraint_top_left.y;
             p->velocity.y = -p->velocity.y * cloth->efficiency_factor;
         }
+        
+        // move point
+        p->pos.x += p->velocity.x;
+        p->pos.y += p->velocity.y;
     }
 }

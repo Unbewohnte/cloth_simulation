@@ -24,13 +24,13 @@ App* app_init(App_config conf) {
     }
     app->conf = conf;
     
-    app->mouse = new_mouse(Vec2{0, 0}, 30);
+    app->mouse = new_mouse(Vec2{0, 0}, 50);
     app->window = new_window(conf.win_name, conf.window_dimensions);
     app->cloth = new_cloth(
         conf.cloth_startpos,
         conf.cloth_dimensions,
         conf.cloth_spacing,
-        conf.efficiency_factor,
+        conf.efficiency_factor, 
         conf.friction_factor,
         Vec2{0, 0}, Vec2{app->window->dimensions.x-5, app->window->dimensions.y-5}
     );
@@ -66,13 +66,13 @@ void app_handle_input(App* app) {
                     break; 
                 
                 case SDLK_LEFT:
-                    if (app->conf.timestep >= 0.25) {
-                        app->conf.timestep -= 0.25;
+                    if (app->conf.timestep >= 0.15f) {
+                        app->conf.timestep -= 0.15f;
                     }
                     break;
                 
                 case SDLK_RIGHT:
-                    app->conf.timestep += 0.25;
+                    app->conf.timestep += 0.15f;
                     break;
             }
 

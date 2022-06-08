@@ -9,5 +9,6 @@ struct Point {
     bool frozen;
     bool selected;
     float radius;
+    Vec2f acceleration;
     Vec2f velocity;
 };
