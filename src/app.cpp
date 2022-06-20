@@ -24,7 +24,7 @@ App* app_init(App_config conf) {
     }
     app->conf = conf;
     
-    app->mouse = new_mouse(Vec2{0, 0}, 50);
+    app->mouse = new_mouse(Vec2{0, 0}, conf.cursor_radius);
     app->window = new_window(conf.win_name, conf.window_dimensions);
     app->cloth = new_cloth(
         conf.cloth_startpos,

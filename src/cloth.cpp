@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdio>
+#include <math.h>
 #include <vector>
 
 Cloth* new_cloth(
@@ -39,13 +40,33 @@ Cloth* new_cloth(
 
             if (x != 0) {
                 Point* p0_left = new_cloth->points[new_cloth->points.size() - 2];
-                Connection* new_conn = new Connection{*p0_left, *new_point};
+                float length = std::sqrt(
+                    pow(p0_left->pos.x - new_point->pos.x, 2.0f)+
+                    pow(p0_left->pos.y - new_point->pos.y, 2.0f)
+                );
+                
+                Connection* new_conn = new Connection{
+                    .p0 = *p0_left,
+                    .p1 = *new_point,
+                    .initial_length = length,
+                    .length = length,
+                };
                 new_cloth->connections.push_back(new_conn);
             }
 
             if (y != 0) {
                 Point* p0_up = new_cloth->points[new_cloth->points.size()-1 - dimensions.x/spacing];
-                Connection* new_conn = new Connection{*p0_up, *new_point};
+                float length = std::sqrt(
+                    pow(p0_up->pos.x - new_point->pos.x, 2.0f)+
+                    pow(p0_up->pos.y - new_point->pos.y, 2.0f)
+                );
+
+                Connection* new_conn = new Connection{
+                    .p0 = *p0_up,
+                    .p1 = *new_point,
+                    .initial_length = length,
+                    .length = length,
+                };
                 new_cloth->connections.push_back(new_conn);
             }
         }
@@ -138,5 +159,25 @@ void cloth_step(Cloth* cloth, Mouse* mouse, Vec2f gravity_vec, float timedelta) 
         // move point
         p->pos.x += p->velocity.x;
         p->pos.y += p->velocity.y;
+    }
+
+    for (Connection* c : cloth->connections) {
+        if (c->p0.frozen || c->p1.frozen) {
+            continue;
+        }
+
+        float distance = std::sqrt(
+            std::pow(c->p0.pos.x - c->p1.pos.x, 2.0f) +
+            std::pow(c->p0.pos.y - c->p1.pos.y, 2.0f)
+        );
+        float diff_factor = (c->length - distance) / distance;
+
+        Vec2f offset = {
+            (c->p0.pos.x - c->p1.pos.x) * diff_factor * 0.75f,
+            (c->p0.pos.y - c->p1.pos.y) * diff_factor * 0.75f
+        };
+
+        c->p0.pos = Vec2f{c->p0.pos.x + offset.x, c->p0.pos.y + offset.y};
+        c->p1.pos = Vec2f{c->p1.pos.x - offset.x, c->p1.pos.y - offset.y};
     }
 }

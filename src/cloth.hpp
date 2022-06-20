@@ -9,6 +9,7 @@
 struct Cloth {
     float efficiency_factor;
     float friction_factor;
+    float rigidity;
     Vec2 startpos;
     Vec2 dimensions;
     Vec2 constraint_top_left;

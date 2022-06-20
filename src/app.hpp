@@ -15,6 +15,7 @@ struct App_config {
     float efficiency_factor;
     float friction_factor;
     float timestep;
+    float cursor_radius;
     RGB background_color;
     RGB point_color;
     RGB point_selected_color;
