@@ -1,5 +1,5 @@
 all:
-	g++ -lSDL2 -O2 -Wall -Werror src/*.cpp -o cloth_sim
+	g++ -O2 -Wall -Werror src/*.cpp lib/libSDL2.a -o cloth_sim
 
 clean:
 	rm -f cloth_sim
